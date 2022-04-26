@@ -1,7 +1,6 @@
 import easyocr
-image_name = "examples/kc.png"
-
-reader = easyocr.Reader(['ch_sim','en']) # this needs to run only once to load the model into memory
+image_name = "examples/kc_test22.png"
+reader = easyocr.Reader(['ko','en']) # this needs to run only once to load the model into memory
 result = reader.readtext(image_name) # 결과값 + 인식률 보이도록
 # result = reader.readtext('examples/kc.png', detail=0) # 결과값만 보이도록
 count = 0
@@ -19,14 +18,31 @@ for i in result:
         elif n == 3:
             datas.append(j[2:-1])
         else:
-            result3.append(j)
+            result3.append(j[:-1])
     result2.append(datas)
 
-# import cv2
-# import numpy as np
-# win_name = "EasyOCR"
-# img = cv2.imread(image_name)
-# cv2.imshow(win_name, img)
+import cv2
+import numpy as np
+img = cv2.imread(image_name)
 for n, i in enumerate(result2):
-    print(i)            # 레터박스 좌표(list)
-    print(result3[n])   # 결과값, 인식률(list)
+    buf = []
+    # print(i)            # 레터박스 좌표(list)
+    for m, j in enumerate(i):
+        if m == 0 or m == 2:
+            str_trans = j.split(", ")
+            int_trans = map(int, str_trans)
+            result_trans = list(int_trans)
+            buf.append(result_trans)
+    # print(result3[n])   # 결과값, 인식률(list)
+    result4 = result3[n].split(", ")
+    print(result4[0])
+    if len(result4[0]) >= 6:
+        # img = cv2.putText(img, result4[0], (buf[0][0]-35, buf[0][1]), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2, cv2.LINE_AA)
+        img = cv2.rectangle(img, (buf[0][0], buf[0][1]), (buf[1][0], buf[1][1]), (0, 0, 255), 2)
+    else:
+        # img = cv2.putText(img, result4[0], (buf[0][0]-35, buf[0][1]), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2, cv2.LINE_AA)
+        img = cv2.rectangle(img, (buf[0][0], buf[0][1]), (buf[1][0], buf[1][1]), (255, 0, 0), 2)
+cv2.imshow('test', img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+    
