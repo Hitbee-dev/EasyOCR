@@ -4,11 +4,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-img_name = 'examples/kc_test19.jpg'
+img_name = 'examples/kc_test33.png'
 
 ### 이미지 정규화
 image = cv2.imread(img_name)
 image_gray = cv2.imread(img_name, cv2.IMREAD_GRAYSCALE)
+cv2.imwrite(f"examples/boundary_result/result_1.jpg", image)
+cv2.imwrite(f"examples/boundary_result/result_2.jpg", image_gray)
 # cv2.imshow('image', image)
 # cv2.imshow('image_gray', image_gray)
 
@@ -17,20 +19,24 @@ image2 = cv2.merge([r,g,b])
 
 blur = cv2.GaussianBlur(image_gray, ksize=(5,5), sigmaX=0)
 ret, thresh1 = cv2.threshold(blur, 127, 255, cv2.THRESH_BINARY)
+cv2.imwrite(f"examples/boundary_result/result_3.jpg", blur)
 # cv2.imshow('blur', blur)
 
 edged = cv2.Canny(blur, 10, 250)
+cv2.imwrite(f"examples/boundary_result/result_4.jpg", edged)
 # cv2.imshow('edged', edged)
 
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10,10))
 closed = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, kernel)
+cv2.imwrite(f"examples/boundary_result/result_5.jpg", closed)
 # cv2.imshow('closed', closed)
 
 contours, _ = cv2.findContours(closed.copy(),cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 total = 0
 
 # 녹색 선으로 경계선 긋기
-# contours_image = cv2.drawContours(image, contours, -1, (0,255,0), 3)
+contours_image = cv2.drawContours(image, contours, -1, (0,255,0), 3)
+cv2.imwrite(f"examples/boundary_result/result_6.jpg", contours_image)
 # cv2.imshow('contours_image', contours_image)
 
 contours_xy = np.array(contours)
@@ -67,6 +73,7 @@ print(f"w: {w}, h: {h}")
 
 img_trim = image[y:y+h, x:x+w]
 cv2.imwrite('examples/org_trim.jpg', img_trim)
+cv2.imwrite(f"examples/boundary_result/result_7.jpg", img_trim)
 org_image = cv2.imread('examples/org_trim.jpg')
 # cv2.imshow('org_image', org_image)
 
@@ -85,24 +92,34 @@ for contour in contours:
         tx_list.append(tx)
         ty_list.append(ty)
     
-    tx_min = min(tx_list)
-    tx_max = max(tx_list)
-    ty_min = min(ty_list)
-    ty_max = max(ty_list)
+tx_min = min(tx_list)
+tx_max = max(tx_list)
+ty_min = min(ty_list)
+ty_max = max(ty_list)
+
+tx_min_ty = ty_list[tx_list.index(tx_min)]   # tx_min 값의 ty값
+tx_max_ty = ty_list[tx_list.index(tx_max)]   # tx_max 값의 ty값
+ty_min_tx = tx_list[ty_list.index(ty_min)]   # ty_min 값의 tx값
+ty_max_tx = tx_list[ty_list.index(ty_max)]   # ty_max 값의 tx값
+
+
+
+print(f"tx_min: {tx_min, tx_min_ty}, tx_max: {tx_max, tx_max_ty}, ty_min: {ty_min_tx, ty_min}, ty_max: {ty_max_tx, ty_max}")
 print(tx_min, tx_max, ty_min, ty_max)
-# cv2.circle(org_image, (tx_min, ty_min), 3, (0, 0, 255), -1)
-# cv2.circle(org_image, (tx_max, ty_min), 3, (0, 0, 255), -1)
-# cv2.circle(org_image, (tx_min, ty_max), 3, (0, 0, 255), -1)
-# cv2.circle(org_image, (tx_max, ty_max), 3, (0, 0, 255), -1)
+cv2.circle(org_image, (tx_min, tx_min_ty), 3, (0, 0, 255), -1)
+cv2.circle(org_image, (tx_max, tx_max_ty), 3, (0, 0, 255), -1)
+cv2.circle(org_image, (ty_min_tx, ty_min), 3, (0, 0, 255), -1)
+cv2.circle(org_image, (ty_max_tx, ty_max), 3, (0, 0, 255), -1)
+cv2.imwrite(f"examples/boundary_result/result_8.jpg", org_image)
 # cv2.imshow("src", org_image)
 
 # 좌표 저장
 pts = np.zeros((4, 2), dtype=np.float32)
 pts_cnt = 0
-pts[0] = [tx_min, ty_min]
-pts[1] = [tx_max, ty_min]
-pts[2] = [tx_min, ty_max]
-pts[3] = [tx_max, ty_max]
+pts[0] = [tx_min, tx_min_ty]
+pts[1] = [tx_max, tx_max_ty]
+pts[2] = [ty_min_tx, ty_min]
+pts[3] = [ty_max_tx, ty_max]
 
 # 좌표 4개 중 상하좌우 찾기
 sm = pts.sum(axis=1)  # 4쌍의 좌표 각각 x+y 계산
@@ -137,6 +154,7 @@ result = cv2.warpPerspective(org_image, mtrx, (int(width), int(height)))
 # cv2.waitKey(0)
 # cv2.destroyAllWindows()
 cv2.imwrite('examples/result.jpg', result)
+cv2.imwrite(f"examples/boundary_result/result_9.jpg", result)
 
 from PIL import Image
 def image_crop( infilename , save_path):
@@ -269,7 +287,7 @@ for vcnt in range(3):       # 이미지 세로로 3장 이어붙힘
         v_img = addv
 
 
-
-    # cv2.imshow('test', img)
+cv2.imwrite(f"examples/boundary_result/result_10.jpg", v_img)
+cv2.imshow('result', v_img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
