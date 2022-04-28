@@ -63,6 +63,8 @@ y = y_min
 w = x_max-x_min
 h = y_max-y_min
 
+print(f"w: {w}, h: {h}")
+
 img_trim = image[y:y+h, x:x+w]
 cv2.imwrite('examples/org_trim.jpg', img_trim)
 org_image = cv2.imread('examples/org_trim.jpg')
@@ -152,8 +154,8 @@ def image_crop( infilename , save_path):
     print(img.size)
  
     # crop 할 사이즈 : grid_w, grid_h
-    grid_w = 214 # crop width
-    grid_h = 140 # crop height
+    grid_w = math.ceil(img_w / 3) - 1 # crop width
+    grid_h = math.ceil(img_h / 10) - 1 # crop height
     range_w = (int)(img_w/grid_w)
     range_h = (int)(img_h/grid_h)
     print(range_w, range_h)
@@ -238,6 +240,36 @@ for num in range(30):
     # plt.ylabel('accuracy(%)')
     # plt.show()
     cv2.imwrite(f"examples/crops_result/result_{num+1}.jpg", img)
+
+v_img = cv2.imread(f"examples/crops_result/result_1.jpg")
+h_img = cv2.imread(f"examples/crops_result/result_1.jpg")
+addh = cv2.imread(f"examples/crops_result/result_1.jpg")
+for vcnt in range(3):       # 이미지 세로로 3장 이어붙힘
+    for hcnt in range(10):  # 이미지 가로로 10장 이어붙힘
+        if vcnt == 0:
+            pass
+        elif vcnt == 1:
+            hcnt += 10
+        elif vcnt == 2:
+            hcnt += 20
+            
+        if hcnt == 0 or hcnt == 10 or hcnt == 20:
+            h_img = cv2.imread(f"examples/crops_result/result_{hcnt+1}.jpg")
+        else:
+            bufh_img = cv2.imread(f"examples/crops_result/result_{hcnt+1}.jpg")
+            addh = cv2.hconcat([h_img, bufh_img])
+            cv2.imwrite(f"examples/adds_result/result_{hcnt}.jpg", addh)
+            h_img = addh
+    if vcnt == 0:
+        v_img = addh
+    else:
+        bufv_img = addh
+        addv = cv2.vconcat([v_img, bufv_img])
+        cv2.imwrite(f"examples/adds_result/add_result_{vcnt}.jpg", addv)
+        v_img = addv
+
+
+
     # cv2.imshow('test', img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
