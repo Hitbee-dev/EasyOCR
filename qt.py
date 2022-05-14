@@ -321,6 +321,4 @@ class Ui_MainWindow(object):
         self.result_Label.setText("")
         self.result_Button.setText(QCoreApplication.translate("MainWindow", u"Result Image", None))
         self.menureset.setTitle(QCoreApplication.translate("MainWindow", u"Reset", None))
-
-
     # retranslateUi
