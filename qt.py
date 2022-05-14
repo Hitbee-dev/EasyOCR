@@ -1,23 +1,29 @@
-from tkinter.tix import IMAGETEXT
+import sys
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
+    QSize, QTime, QUrl, Qt, QDir, QStandardPaths, Slot)
 from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
-    QCursor, QFont, QFontDatabase, QGradient,
+    QCursor, QFont, QGuiApplication, QDesktopServices,QFontDatabase, QGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
 from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLabel,
     QLayout, QMainWindow, QMenu, QMenuBar,
     QPushButton, QSizePolicy, QStatusBar, QVBoxLayout, QFileDialog,
-    QWidget)
+    QWidget, QTabWidget, QToolBar)
+from PySide6.QtMultimedia import (QCamera, QImageCapture,
+                                  QCameraDevice, QMediaCaptureSession,
+                                  QMediaDevices)
+from PySide6.QtMultimediaWidgets import QVideoWidget
 import os
 import matplotlib
-matplotlib.use("TkAgg")
-from tkinter import Button, Image, Label, Tk, filedialog
-from tkinter import messagebox
-
-
+# import easyocr
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+from camera import CameraWindow, ImageView
+# from index import easyocr_data
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
@@ -64,17 +70,14 @@ class Ui_MainWindow(object):
         self.upload_Button = QPushButton(self.verticalLayoutWidget_3)
         self.upload_Button.setObjectName(u"upload_Button")
         self.upload_Button_Layout.addWidget(self.upload_Button)
-        self.upload_func()
         
-
-        self.upload_Label.setPixmap(QPixmap(r""))
 
 
         self.camera_Button = QPushButton(self.verticalLayoutWidget_3)
         self.camera_Button.setObjectName(u"camera_Button")
 
         self.upload_Button_Layout.addWidget(self.camera_Button)
-
+        
 
         self.upload_Layout.addLayout(self.upload_Button_Layout)
 
@@ -214,6 +217,17 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.ir_groupBox)
 
+        # button event
+        self.upload_Button.clicked.connect(self.upload_func)
+        self.camera_Button.clicked.connect(self.camera_func)
+        self.grayscale_Button.clicked.connect(self.gray_func)
+        self.blur_Button.clicked.connect(self.blur_func)
+        self.edged_Button.clicked.connect(self.edged_func)
+        self.outline_Button.clicked.connect(self.outline_func)
+        self.tilt_Button.clicked.connect(self.tilt_func)
+        self.result_Button.clicked.connect(self.result_func)
+
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
@@ -229,14 +243,60 @@ class Ui_MainWindow(object):
         self.menureset.addAction(self.actionreset)
 
         self.retranslateUi(MainWindow)
-
+        
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
+
+    # function
     def upload_func(self):
-        self.upload_Button.clicked.connect(self.fileopen)
+        fname = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\',"Image files (*.jpg *.gif *.svg *.png)")
+        imagepath = fname[0]    # image
+        pix = QPixmap(imagepath)
+        self.upload_Label.setPixmap(QPixmap(pix))
+        self.upload_Label.setScaledContents(True)
+
+    # def camera_func(self):
+    #     self.camera = CameraWindow()
+    #     self.camera.show()
+    #     # self.upload_Label.setPixmap(QPixmap(CameraWindow().take_picture()))
+    #     self.upload_Label.setScaledContents(True)
+
+    def gray_func(self):
+        self.grayscale_Label.setPixmap(QPixmap(r"/Users/chankim/IndividualProject/EasyOCR/examples/boundary_result/result_2.jpg"))
+        self.grayscale_Label.setScaledContents(True)
+        
+    def blur_func(self):
+        self.blur_Label.setPixmap(QPixmap(r"/Users/chankim/IndividualProject/EasyOCR/examples/boundary_result/result_3.jpg"))
+        self.blur_Label.setScaledContents(True)
+                
+    def edged_func(self):
+        self.edged_Label.setPixmap(QPixmap(r"/Users/chankim/IndividualProject/EasyOCR/examples/boundary_result/result_4.jpg"))
+        self.edged_Label.setScaledContents(True)
+                
+    def outline_func(self):
+        self.outline_Label.setPixmap(QPixmap(r"/Users/chankim/IndividualProject/EasyOCR/examples/boundary_result/result_5.jpg"))
+        self.outline_Label.setScaledContents(True)
+                
+    def tilt_func(self):
+        self.tilt_Label.setPixmap(QPixmap(r"/Users/chankim/IndividualProject/EasyOCR/examples/boundary_result/result_8.jpg"))
+        self.tilt_Label.setScaledContents(True)
+
+    def result_func(self):
+        self.result_Label.setPixmap(QPixmap(r"/Users/chankim/IndividualProject/EasyOCR/examples/boundary_result/result_10.jpg"))
+        self.result_Label.setScaledContents(True)
 
     def fileopen(self):
         print("test")
+        # easyocr_data.init('examples/kc_test31.jpg')
+        # easyocr_data.image_origin()
+        # easyocr_data.image_grayscale()
+        # easyocr_data.image_blur()
+        # easyocr_data.image_edged()
+        # easyocr_data.image_closed()
+        # easyocr_data.image_contours()
+        # easyocr_data.image_normalization()
+        # easyocr_data.image_crop('examples/result.jpg', 'examples/crops/')
+        # easyocr_data.image_result()
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
@@ -261,4 +321,6 @@ class Ui_MainWindow(object):
         self.result_Label.setText("")
         self.result_Button.setText(QCoreApplication.translate("MainWindow", u"Result Image", None))
         self.menureset.setTitle(QCoreApplication.translate("MainWindow", u"Reset", None))
+
+
     # retranslateUi
